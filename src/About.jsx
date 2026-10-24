@@ -170,7 +170,10 @@ export default function About() {
 
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1]);
 
-  const files = ["About.md", "Tech Stack.md"];
+  const files = [
+    { name: "About.md", index: "01", code: "BIO // PROFILE" },
+    { name: "Tech Stack.md", index: "02", code: "SYS // ARSENAL" },
+  ];
 
   const coreFocusItems = [
     "UI/UX Developer",
@@ -181,6 +184,7 @@ export default function About() {
 
   const techStackCategories = [
     {
+      index: "01",
       title: "UI/UX Design",
       description:
         "Designing intuitive user interfaces, wireframes, and interactive prototypes with modern design systems.",
@@ -188,6 +192,7 @@ export default function About() {
       wide: false,
     },
     {
+      index: "02",
       title: "Website Developer",
       description:
         "Building robust web applications and database systems with secure and scalable architecture.",
@@ -195,6 +200,7 @@ export default function About() {
       wide: false,
     },
     {
+      index: "03",
       title: "Frontend Developer",
       description:
         "Crafting clean, fast, and fully responsive user interfaces using modern CSS frameworks and JS.",
@@ -202,6 +208,7 @@ export default function About() {
       wide: false,
     },
     {
+      index: "04",
       title: "Performance & Optimization",
       description:
         "Optimizing web assets, structure, and database queries for maximum speed and search visibility.",
@@ -209,6 +216,7 @@ export default function About() {
       wide: false,
     },
     {
+      index: "05",
       title: "Tools & Development Workflow",
       description:
         "Environments, version control, and design tools used daily to streamline development.",
@@ -229,11 +237,11 @@ export default function About() {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 18 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
     },
   };
 
@@ -247,157 +255,276 @@ export default function About() {
       id="about"
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
         .about-section {
+          --ab-bg-deep: #18050b;
+          --ab-bg-console: #210710;
+          --ab-bg-panel: rgba(46, 12, 24, 0.56);
+          --ab-bg-panel-hover: rgba(64, 17, 33, 0.72);
+          --ab-border: rgba(255, 228, 234, 0.18);
+          --ab-border-strong: rgba(255, 224, 181, 0.45);
+          --ab-text: #fff9fa;
+          --ab-text-muted: rgba(255, 232, 238, 0.72);
+          --ab-gold: #ffe0b5;
+          --ab-rose: #f7a8b8;
+          --ab-dark: #2c0813;
+          --font-display: 'Oswald', Impact, sans-serif;
+          --font-sans: 'Space Grotesk', system-ui, sans-serif;
+          --font-mono: 'JetBrains Mono', monospace;
+
           position: relative;
           z-index: 20;
           width: 100%;
           min-height: 100vh;
-          background: #090d16;
+          background: radial-gradient(
+            circle at 75% 20%,
+            #461222 0%,
+            #240811 48%,
+            #140409 100%
+          );
           display: flex;
           align-items: stretch;
           justify-content: stretch;
           padding: 0;
           margin: 0;
-          font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-          color: #1e293b;
+          font-family: var(--font-sans);
+          color: var(--ab-text);
           box-sizing: border-box;
-          box-shadow: 0 -25px 60px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 -28px 64px rgba(15, 2, 7, 0.65);
+          border-top: 1px solid var(--ab-border-strong);
         }
 
-        /* Jendela Utama Code Editor Fleksibel (Min 100vh, Bisa Memanjang Jika Konten Banyak) */
+        /* Jendela Utama Telemetry Command Console */
         .terminal-window {
           position: relative;
           z-index: 2;
           width: 100%;
           min-height: 100vh;
-          background: #f8fafc;
-          border-radius: 0;
-          border: none;
           display: flex;
           flex-direction: column;
           box-sizing: border-box;
         }
 
+        /* Top Bar Berkonsep Telemetry Header (Bukan titik Mac pasaran) */
         .terminal-titlebar {
-          background: #e2e8f0;
-          padding: 0.5rem 1rem;
+          background: rgba(20, 4, 10, 0.88);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          padding: 0.75rem 1.75rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border-bottom: 1px solid #cbd5e1;
+          border-bottom: 1px solid var(--ab-border);
           flex-shrink: 0;
         }
 
-        .window-dots {
-          display: flex;
-          gap: 0.35rem;
-        }
-
-        .dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-        }
-
-        .dot-red { background: #ef4444; }
-        .dot-yellow { background: #f59e0b; }
-        .dot-green { background: #10b981; }
-
-        .window-title {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.8rem;
-          color: #475569;
-          font-weight: 600;
-        }
-
-        .terminal-pathbar {
-          background: #ffffff;
-          padding: 0.4rem 1rem;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.75rem;
-          color: #64748b;
-          border-bottom: 1px solid #e2e8f0;
+        .telemetry-nodes {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.45rem;
+        }
+
+        .t-node {
+          width: 10px;
+          height: 10px;
+          clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+        }
+
+        .t-node-gold { background: var(--ab-gold); }
+        .t-node-rose { background: var(--ab-rose); }
+        .t-node-live {
+          background: #4ade80;
+          box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+        }
+
+        .node-label {
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          letter-spacing: 0.12em;
+          color: var(--ab-text-muted);
+          margin-left: 0.35rem;
+          text-transform: uppercase;
+        }
+
+        .window-title {
+          font-family: var(--font-display);
+          font-size: 0.9rem;
+          color: var(--ab-gold);
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .window-coord {
+          font-family: var(--font-mono);
+          font-size: 0.7rem;
+          color: var(--ab-text-muted);
+          letter-spacing: 0.08em;
+        }
+
+        /* Sub-Bar Breadcrumb Path */
+        .terminal-pathbar {
+          background: rgba(34, 8, 17, 0.75);
+          padding: 0.5rem 1.75rem;
+          font-family: var(--font-mono);
+          font-size: 0.73rem;
+          color: var(--ab-text-muted);
+          border-bottom: 1px solid var(--ab-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
           flex-shrink: 0;
+          flex-wrap: wrap;
+        }
+
+        .path-left {
+          display: flex;
+          align-items: center;
+          gap: 0.55rem;
         }
 
         .path-badge {
-          background: #0f172a;
-          color: #38bdf8;
-          padding: 0.15rem 0.5rem;
-          border-radius: 4px;
+          background: rgba(255, 224, 181, 0.12);
+          color: var(--ab-gold);
+          border: 1px solid rgba(255, 224, 181, 0.35);
+          padding: 0.18rem 0.65rem;
+          clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+          font-weight: 600;
+        }
+
+        .path-status {
+          font-size: 0.68rem;
+          letter-spacing: 0.1em;
+          color: var(--ab-rose);
+          text-transform: uppercase;
         }
 
         /* Layout Grid 3 Kolom saat About.md, dan 2 Kolom saat Tech Stack.md */
         .terminal-body {
           display: grid;
-          grid-template-columns: 220px 380px minmax(0, 1fr);
-          background: #ffffff;
+          grid-template-columns: 240px 390px minmax(0, 1fr);
           flex: 1;
-          min-height: calc(100vh - 68px);
+          min-height: calc(100vh - 82px);
         }
 
         .terminal-body.no-lanyard {
-          grid-template-columns: 220px minmax(0, 1fr);
+          grid-template-columns: 240px minmax(0, 1fr);
         }
 
+        /* 1. Kolom Kiri: Explorer Direktori Berkonsep HUD */
         .terminal-sidebar-files {
-          background: #f1f5f9;
-          border-right: 1px solid #cbd5e1;
-          padding: 1.5rem 1rem;
+          background: rgba(24, 5, 12, 0.78);
+          border-right: 1px solid var(--ab-border);
+          padding: 1.75rem 1.15rem;
           display: flex;
           flex-direction: column;
-          gap: 0.65rem;
+          justify-content: space-between;
+          gap: 1.5rem;
+        }
+
+        .sidebar-top-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
         }
 
         .sidebar-heading {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.7rem;
-          color: #94a3b8;
-          letter-spacing: 0.1em;
+          font-family: var(--font-display);
+          font-size: 0.76rem;
+          color: var(--ab-gold);
+          letter-spacing: 0.16em;
           font-weight: 700;
-          margin-bottom: 0.35rem;
+          margin-bottom: 0.4rem;
+          text-transform: uppercase;
         }
 
         .file-item {
+          position: relative;
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          background: transparent;
-          color: #64748b;
-          border: none;
+          flex-direction: column;
+          gap: 0.18rem;
+          padding: 0.7rem 0.9rem;
+          background: rgba(255, 255, 255, 0.03);
+          color: var(--ab-text-muted);
+          border: 1px solid rgba(255, 228, 234, 0.1);
           width: 100%;
           text-align: left;
-          border-radius: 6px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.8rem;
-          font-weight: 500;
+          font-family: var(--font-mono);
           cursor: pointer;
-          transition: all 0.2s ease;
+          clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .file-item:hover {
-          background: #e2e8f0;
-          color: #0f172a;
-        }
-
-        .file-item.active {
-          background: #e2e8f0;
-          color: #0f172a;
+        .file-item-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          font-size: 0.8rem;
           font-weight: 600;
         }
 
+        .file-item-sub {
+          font-size: 0.64rem;
+          letter-spacing: 0.1em;
+          opacity: 0.65;
+        }
+
+        .file-item:hover {
+          background: rgba(255, 224, 181, 0.08);
+          color: var(--ab-text);
+          border-color: var(--ab-border-strong);
+          transform: translateX(3px);
+        }
+
+        .file-item.active {
+          background: linear-gradient(135deg, #fff9fa 0%, var(--ab-gold) 100%);
+          color: var(--ab-dark);
+          border-color: #ffffff;
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+        }
+
+        .file-item.active .file-item-sub {
+          color: var(--ab-dark);
+          opacity: 0.8;
+        }
+
+        /* Kartu Info Kecil di Bawah Sidebar */
+        .sidebar-telemetry-box {
+          position: relative;
+          padding: 0.95rem 1rem;
+          background: var(--ab-bg-panel);
+          border: 1px solid var(--ab-border);
+          display: flex;
+          flex-direction: column;
+          gap: 0.45rem;
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          color: var(--ab-text-muted);
+        }
+
+        .sidebar-telemetry-title {
+          font-family: var(--font-display);
+          font-size: 0.74rem;
+          letter-spacing: 0.12em;
+          color: var(--ab-gold);
+          text-transform: uppercase;
+        }
+
+        /* 2. Kolom Tengah: Panggung 3D Lanyard */
         .terminal-sidebar-left {
-          background: #ffffff;
-          border-right: 1px solid #cbd5e1;
+          background: radial-gradient(
+            circle at 50% 38%,
+            rgba(247, 168, 184, 0.2) 0%,
+            rgba(68, 17, 34, 0.45) 58%,
+            rgba(22, 4, 10, 0.85) 100%
+          );
+          border-right: 1px solid var(--ab-border);
           position: relative;
           width: 100%;
-          min-height: calc(100vh - 68px);
+          min-height: calc(100vh - 82px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -409,160 +536,298 @@ export default function About() {
           cursor: grabbing;
         }
 
-        /* Konten utama tidak lagi memotong kartu di bagian bawah */
+        /* Grid halus di belakang Lanyard 3D */
+        .lanyard-stage-grid {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+          background-size: 3.2rem 3.2rem;
+          pointer-events: none;
+        }
+
+        .lanyard-badge-hint {
+          position: absolute;
+          bottom: 1.25rem;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 0.35rem 0.85rem;
+          background: rgba(24, 5, 12, 0.75);
+          border: 1px solid var(--ab-border);
+          backdrop-filter: blur(8px);
+          font-family: var(--font-mono);
+          font-size: 0.66rem;
+          letter-spacing: 0.12em;
+          color: var(--ab-gold);
+          text-transform: uppercase;
+          white-space: nowrap;
+          pointer-events: none;
+        }
+
+        /* 3. Kolom Kanan: Konten Utama About & Tech Stack */
         .terminal-content {
-          padding: 2rem 3rem 3rem 3rem;
+          position: relative;
+          padding: 2.5rem 3rem 3.25rem;
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.5rem;
           justify-content: flex-start;
           align-items: flex-start;
           box-sizing: border-box;
+          background-image: radial-gradient(
+            rgba(255, 224, 181, 0.08) 1px,
+            transparent 1px
+          );
+          background-size: 24px 24px;
         }
 
         .terminal-content.tech-stack-mode {
-          background-color: #07090e;
-          background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-          background-size: 20px 20px;
-          color: #f8fafc;
-          justify-content: flex-start;
-          align-items: flex-start;
-          padding: 1.5rem 2.5rem 2.5rem 2.5rem;
-          gap: 1rem;
+          padding: 2.25rem 2.75rem 3rem;
+          gap: 1.35rem;
         }
 
-        .code-comment {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.78rem;
-          color: #64748b;
-          margin: 0;
+        .section-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.3rem 0.75rem;
+          background: var(--ab-bg-panel);
+          border: 1px solid var(--ab-border);
+          font-family: var(--font-mono);
+          font-size: 0.7rem;
+          font-weight: 600;
+          color: var(--ab-gold);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
         }
 
         .main-headline {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: clamp(1.5rem, 2vw, 2.1rem);
+          font-family: var(--font-display);
+          font-size: clamp(1.85rem, 2.8vw, 2.75rem);
           font-weight: 700;
-          line-height: 1.2;
-          letter-spacing: -0.03em;
+          line-height: 1.08;
+          letter-spacing: 0.01em;
+          text-transform: uppercase;
           margin: 0;
-          color: #0f172a;
+          color: var(--ab-text);
+          max-width: 26ch;
         }
 
-        .tech-stack-mode .main-headline {
-          color: #ffffff;
-          margin-bottom: 0.15rem;
+        .headline-accent {
+          color: var(--ab-gold);
         }
 
+        /* Kartu Bio Berbingkai Siku L-Bracket */
         .bio-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 1.2rem 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1.25rem;
           width: 100%;
+        }
+
+        .bio-card {
+          position: relative;
+          padding: 1.35rem 1.5rem;
+          background: var(--ab-bg-panel);
+          border: 1px solid var(--ab-border);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-radius: 4px;
+          transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .bio-card:hover {
+          transform: translateY(-3px);
+          border-color: var(--ab-border-strong);
+        }
+
+        /* Ornamen Siku L-Bracket khas Home & Navbar */
+        .b-corner {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          border: 1.5px solid var(--ab-gold);
+          pointer-events: none;
+          transition: width 0.25s ease, height 0.25s ease;
+        }
+
+        .bio-card:hover .b-corner,
+        .tech-card:hover .b-corner {
+          width: 12px;
+          height: 12px;
+        }
+
+        .tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+        .bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+        .br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+        .bio-card-index {
+          font-family: var(--font-display);
+          font-size: 0.75rem;
+          letter-spacing: 0.14em;
+          color: var(--ab-gold);
+          text-transform: uppercase;
+          margin-bottom: 0.5rem;
+          display: block;
         }
 
         .bio-paragraph {
           font-size: 0.92rem;
-          line-height: 1.7;
-          color: #334155;
+          line-height: 1.72;
+          color: var(--ab-text-muted);
           margin: 0;
         }
 
         .bio-paragraph strong {
-          color: #0f172a;
-          font-weight: 600;
+          color: var(--ab-text);
+          font-weight: 700;
         }
 
         .about-divider {
           width: 100%;
           height: 1px;
-          background: #cbd5e1;
-          margin: 0.2rem 0;
+          background: linear-gradient(
+            90deg,
+            var(--ab-border-strong),
+            var(--ab-border),
+            transparent
+          );
+          margin: 0.25rem 0;
         }
 
+        /* Core Focus Badges */
         .core-focus-wrapper {
           display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 0.75rem 1rem;
+          flex-direction: column;
+          gap: 0.75rem;
           width: 100%;
         }
 
         .core-focus-label {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.75rem;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          color: #64748b;
-          flex-shrink: 0;
+          font-family: var(--font-display);
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          color: var(--ab-gold);
+          text-transform: uppercase;
         }
 
         .core-focus-list {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.5rem;
-          flex: 1;
+          gap: 0.65rem;
+          width: 100%;
         }
 
         .focus-badge {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.78rem;
-          font-weight: 500;
-          color: #0f172a;
-          background: #f1f5f9;
-          border: 1px solid #cbd5e1;
-          padding: 0.35rem 0.75rem;
-          border-radius: 6px;
-          transition: all 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-family: var(--font-sans);
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--ab-text);
+          background: var(--ab-bg-panel);
+          border: 1px solid var(--ab-border);
+          padding: 0.55rem 1rem;
+          clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: default;
+        }
+
+        .focus-badge-num {
+          font-family: var(--font-display);
+          font-size: 0.75rem;
+          color: var(--ab-gold);
         }
 
         .focus-badge:hover {
-          transform: translateY(-2px);
-          background: #e2e8f0;
-          border-color: #94a3b8;
+          background: linear-gradient(135deg, #fff9fa 0%, var(--ab-gold) 100%);
+          color: var(--ab-dark);
+          border-color: #ffffff;
         }
 
-        /* Grid & Kartu Tech Stack.md yang sudah dioptimasi ukurannya */
+        .focus-badge:hover .focus-badge-num {
+          color: var(--ab-dark);
+        }
+
+        /* Grid & Kartu Tech Stack.md */
         .tech-stack-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 1rem;
+          gap: 1.15rem;
           width: 100%;
         }
 
         .tech-card {
-          background: rgba(13, 17, 26, 0.92);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 1.15rem 1.25rem;
+          position: relative;
+          background: var(--ab-bg-panel);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid var(--ab-border);
+          border-radius: 4px;
+          padding: 1.35rem 1.4rem;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          gap: 0.95rem;
-          transition: transform 0.22s ease, border-color 0.22s ease;
+          gap: 1.1rem;
+          box-shadow: 0 14px 32px rgba(15, 2, 7, 0.28);
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                      background 0.25s ease,
+                      border-color 0.25s ease;
         }
 
         .tech-card:hover {
-          transform: translateY(-3px);
-          border-color: rgba(255, 255, 255, 0.22);
+          transform: translateY(-4px);
+          background: var(--ab-bg-panel-hover);
+          border-color: var(--ab-border-strong);
         }
 
         .tech-card.span-two {
           grid-column: span 2;
         }
 
-        .tech-card-title {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 1.05rem;
+        .tech-card-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0.45rem;
+        }
+
+        .tech-card-idx {
+          font-family: var(--font-display);
+          font-size: 0.78rem;
           font-weight: 700;
-          color: #ffffff;
-          margin: 0 0 0.35rem 0;
-          letter-spacing: -0.02em;
+          letter-spacing: 0.12em;
+          color: var(--ab-gold);
+        }
+
+        .tech-card-count {
+          font-family: var(--font-mono);
+          font-size: 0.66rem;
+          color: var(--ab-text-muted);
+          padding: 0.12rem 0.45rem;
+          border: 1px solid var(--ab-border);
+        }
+
+        .tech-card-title {
+          font-family: var(--font-display);
+          font-size: 1.2rem;
+          font-weight: 700;
+          color: var(--ab-text);
+          margin: 0 0 0.4rem 0;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
         }
 
         .tech-card-desc {
-          font-size: 0.82rem;
-          line-height: 1.55;
-          color: #94a3b8;
+          font-size: 0.84rem;
+          line-height: 1.6;
+          color: var(--ab-text-muted);
           margin: 0;
         }
 
@@ -575,22 +840,23 @@ export default function About() {
         .tech-pill {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
-          font-family: 'JetBrains Mono', monospace;
+          gap: 0.45rem;
+          font-family: var(--font-mono);
           font-size: 0.73rem;
           font-weight: 500;
-          color: #e2e8f0;
-          background: #141923;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 0.3rem 0.65rem;
-          border-radius: 6px;
-          transition: all 0.18s ease;
+          color: var(--ab-text);
+          background: rgba(20, 4, 10, 0.65);
+          border: 1px solid var(--ab-border);
+          padding: 0.35rem 0.7rem;
+          clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+          transition: all 0.2s ease;
         }
 
         .tech-pill:hover {
-          background: #1e2636;
-          border-color: rgba(255, 255, 255, 0.25);
-          transform: translateY(-1px);
+          background: rgba(255, 224, 181, 0.16);
+          border-color: var(--ab-gold);
+          color: var(--ab-gold);
+          transform: translateY(-2px);
         }
 
         @media (max-width: 1100px) {
@@ -612,25 +878,31 @@ export default function About() {
             flex-direction: row;
             overflow-x: auto;
             border-right: none;
-            border-bottom: 1px solid #cbd5e1;
-            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--ab-border);
+            padding: 1rem 1.25rem;
             align-items: center;
           }
-          .sidebar-heading {
+          .sidebar-top-group {
+            flex-direction: row;
+            width: 100%;
+          }
+          .sidebar-heading,
+          .sidebar-telemetry-box,
+          .window-coord {
             display: none;
           }
           .file-item {
             width: auto;
-            white-space: nowrap;
+            min-width: 160px;
           }
           .terminal-sidebar-left {
-            min-height: 360px;
+            min-height: 390px;
             border-right: none;
-            border-bottom: 1px solid #cbd5e1;
+            border-bottom: 1px solid var(--ab-border);
           }
           .terminal-content,
           .terminal-content.tech-stack-mode {
-            padding: 1.5rem 1.5rem 2.5rem 1.5rem;
+            padding: 1.75rem 1.5rem 2.75rem;
           }
           .tech-stack-grid {
             grid-template-columns: 1fr;
@@ -642,51 +914,78 @@ export default function About() {
       `}</style>
 
       <div className="terminal-window">
+        {/* Top Telemetry Bar */}
         <div className="terminal-titlebar">
-          <div className="window-dots">
-            <span className="dot dot-red"></span>
-            <span className="dot dot-yellow"></span>
-            <span className="dot dot-green"></span>
+          <div className="telemetry-nodes">
+            <span className="t-node t-node-gold" />
+            <span className="t-node t-node-rose" />
+            <span className="t-node t-node-live" />
+            <span className="node-label">SYS.ONLINE</span>
           </div>
           <span className="window-title">
-            ABOUT_ME - {activeFile.toUpperCase()}
+            TELEMETRY ARCHIVE // {activeFile.toUpperCase()}
           </span>
-          <div style={{ width: "40px" }}></div>
+          <span className="window-coord">SEASON 2026 · IDN</span>
         </div>
 
+        {/* Path Breadcrumb Bar */}
         <div className="terminal-pathbar">
-          <span>Path:</span>
-          <span className="path-badge">
-            C:/portfolio/about_me/{activeFile}
-          </span>
+          <div className="path-left">
+            <span>DIRECTORY:</span>
+            <span className="path-badge">
+              root://nikmatus.dev/about_me/{activeFile}
+            </span>
+          </div>
+          <span className="path-status">● INTERACTIVE MODULE READY</span>
         </div>
 
+        {/* Body Layout */}
         <div className={`terminal-body ${!showLanyard ? "no-lanyard" : ""}`}>
+          {/* 1. Sidebar File Selector */}
           <div className="terminal-sidebar-files">
-            <span className="sidebar-heading">DIRECTORIES</span>
-            {files.map((fileName) => (
-              <button
-                key={fileName}
-                type="button"
-                onClick={() => setActiveFile(fileName)}
-                className={`file-item ${
-                  activeFile === fileName ? "active" : ""
-                }`}
-              >
-                <span>📁</span> {fileName}
-              </button>
-            ))}
+            <div className="sidebar-top-group">
+              <span className="sidebar-heading">MODULES // 02</span>
+              {files.map((fileObj) => (
+                <button
+                  key={fileObj.name}
+                  type="button"
+                  onClick={() => setActiveFile(fileObj.name)}
+                  className={`file-item ${
+                    activeFile === fileObj.name ? "active" : ""
+                  }`}
+                >
+                  <div className="file-item-row">
+                    <span>{fileObj.name}</span>
+                    <span>/{fileObj.index}</span>
+                  </div>
+                  <span className="file-item-sub">{fileObj.code}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="sidebar-telemetry-box">
+              <span className="b-corner tl" />
+              <span className="b-corner br" />
+              <span className="sidebar-telemetry-title">DRIVER SPEC</span>
+              <span>EDU: SMKN 6 MALANG</span>
+              <span>ROLE: FRONTEND &amp; UI/UX</span>
+              <span>STATUS: AVAILABLE</span>
+            </div>
           </div>
 
+          {/* 2. 3D Lanyard Interactive Stage */}
           {showLanyard && (
             <div className="terminal-sidebar-left">
+              <div className="lanyard-stage-grid" aria-hidden="true" />
               <Suspense
                 fallback={
                   <div
                     style={{
-                      color: "#94a3b8",
-                      fontSize: "0.85rem",
-                      fontFamily: "JetBrains Mono, monospace",
+                      color: "var(--ab-gold)",
+                      fontSize: "0.82rem",
+                      fontFamily: "var(--font-mono)",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
                     }}
                   >
                     Memuat Lanyard 3D...
@@ -695,9 +994,13 @@ export default function About() {
               >
                 <Lanyard position={[0, 10, 20]} fov={18} />
               </Suspense>
+              <div className="lanyard-badge-hint">
+                DRAG PASS // 3D INTERACTIVE LANYARD
+              </div>
             </div>
           )}
 
+          {/* 3. Main Content Panel */}
           <motion.div
             key={activeFile}
             className={`terminal-content ${
@@ -709,27 +1012,52 @@ export default function About() {
           >
             {activeFile === "About.md" && (
               <>
+                <motion.div className="section-kicker" variants={itemVariants}>
+                  <span>DRIVER DOSSIER // 01 — ENGINEERING &amp; DESIGN</span>
+                </motion.div>
 
                 <motion.h2 className="main-headline" variants={itemVariants}>
-                  Combining frontend engineering principles with a modern,
-                  intuitive UI/UX design approach.
+                  Combining frontend engineering principles with a{" "}
+                  <span className="headline-accent">
+                    modern, intuitive UI/UX
+                  </span>{" "}
+                  design approach.
                 </motion.h2>
 
                 <motion.div className="bio-grid" variants={itemVariants}>
-                  <p className="bio-paragraph">
-                    With a Software Engineering background from{" "}
-                    <strong>SMK Negeri 6 Malang</strong>, I am accustomed
-                    to building web applications <strong>end-to-end</strong>. My
-                    philosophy is straightforward: a digital product should be
-                    intuitive, responsive, and deliver user-oriented solutions.
-                  </p>
+                  <div className="bio-card">
+                    <span className="b-corner tl" />
+                    <span className="b-corner tr" />
+                    <span className="b-corner bl" />
+                    <span className="b-corner br" />
+                    <span className="bio-card-index">
+                      01 // FOUNDATION &amp; PHILOSOPHY
+                    </span>
+                    <p className="bio-paragraph">
+                      With a Software Engineering background from{" "}
+                      <strong>SMK Negeri 6 Malang</strong>, I am accustomed to
+                      building web applications <strong>end-to-end</strong>. My
+                      philosophy is straightforward: a digital product should be
+                      intuitive, responsive, and deliver user-oriented
+                      solutions.
+                    </p>
+                  </div>
 
-                  <p className="bio-paragraph">
-                    Beyond coding with <strong>Next.js and React</strong>, I focus on
-                    designing interfaces in Figma, optimizing{" "}
-                    <strong>website SEO and performance</strong>, and building
-                    scalable systems for corporate and enterprise needs.
-                  </p>
+                  <div className="bio-card">
+                    <span className="b-corner tl" />
+                    <span className="b-corner tr" />
+                    <span className="b-corner bl" />
+                    <span className="b-corner br" />
+                    <span className="bio-card-index">
+                      02 // EXECUTION &amp; SCALABILITY
+                    </span>
+                    <p className="bio-paragraph">
+                      Beyond coding with <strong>Next.js and React</strong>, I
+                      focus on designing interfaces in Figma, optimizing{" "}
+                      <strong>website SEO and performance</strong>, and building
+                      scalable systems for corporate and enterprise needs.
+                    </p>
+                  </div>
                 </motion.div>
 
                 <motion.div className="about-divider" variants={itemVariants} />
@@ -738,16 +1066,19 @@ export default function About() {
                   className="core-focus-wrapper"
                   variants={itemVariants}
                 >
-                  <span className="core-focus-label">CORE FOCUS:</span>
+                  <span className="core-focus-label">
+                    CORE FOCUS &amp; SPECIALIZATIONS
+                  </span>
                   <div className="core-focus-list">
                     {coreFocusItems.map((item, index) => (
                       <motion.span
                         key={index}
                         className="focus-badge"
-                        whileHover={{ scale: 1.04 }}
+                        whileHover={{ y: -3 }}
                         whileTap={{ scale: 0.97 }}
                       >
-                        {item}
+                        <span className="focus-badge-num">0{index + 1}</span>
+                        <span>{item}</span>
                       </motion.span>
                     ))}
                   </div>
@@ -757,11 +1088,19 @@ export default function About() {
 
             {activeFile === "Tech Stack.md" && (
               <>
+                <motion.div className="section-kicker" variants={itemVariants}>
+                  <span>SYSTEM ARSENAL // 02 — TECH STACK MATRIX</span>
+                </motion.div>
+
                 <motion.h2 className="main-headline" variants={itemVariants}>
-                  Technical Stack &amp; Specializations
+                  Technical Stack &amp;{" "}
+                  <span className="headline-accent">Specializations</span>
                 </motion.h2>
 
-                <motion.div className="tech-stack-grid" variants={itemVariants}>
+                <motion.div
+                  className="tech-stack-grid"
+                  variants={itemVariants}
+                >
                   {techStackCategories.map((category) => (
                     <motion.div
                       key={category.title}
@@ -770,7 +1109,20 @@ export default function About() {
                       }`}
                       variants={itemVariants}
                     >
+                      <span className="b-corner tl" />
+                      <span className="b-corner tr" />
+                      <span className="b-corner bl" />
+                      <span className="b-corner br" />
+
                       <div>
+                        <div className="tech-card-head">
+                          <span className="tech-card-idx">
+                            MODULE // {category.index}
+                          </span>
+                          <span className="tech-card-count">
+                            {category.items.length} TOOLS
+                          </span>
+                        </div>
                         <h3 className="tech-card-title">{category.title}</h3>
                         <p className="tech-card-desc">{category.description}</p>
                       </div>

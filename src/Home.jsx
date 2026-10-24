@@ -1,22 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CommentsSection from "./CommentsSection";
 import RunningText from "./components/RunningText";
 import About from "./About";
 
 const IMG_BEFORE = "/atusbefore.png";
-const IMG_AFTER = "/atusafter.png";
+const IMG_AFTER = "/atus.png";
 
 export default function Home() {
   const [veilProgress, setVeilProgress] = useState(0);
   const [veilVisible, setVeilVisible] = useState(true);
   const [heroReady, setHeroReady] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
 
   const heroCanvasRef = useRef(null);
+  const bgCanvasRef = useRef(null);
   const lenisRef = useRef(null);
 
-  // 1. Veil Progress Loader (Halus + memicu animasi masuk Hero saat selesai)
+  // 1. Veil Progress Loader
   useEffect(() => {
     const interval = setInterval(() => {
       setVeilProgress((prev) => {
@@ -39,24 +43,73 @@ export default function Home() {
     window.history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
 
+    gsap.registerPlugin(ScrollTrigger);
+
     const lenis = new Lenis({
       duration: 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     });
     lenisRef.current = lenis;
+    lenis.on("scroll", ScrollTrigger.update);
 
-    let rafId;
-    const raf = (time) => {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    };
-    rafId = requestAnimationFrame(raf);
+    const updateScroll = (time) => lenis.raf(time * 1000);
+    gsap.ticker.add(updateScroll);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(updateScroll);
+      lenis.off("scroll", ScrollTrigger.update);
       lenis.destroy();
+      lenisRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    if (isLocked) {
+      document.body.style.overflow = "hidden";
+      lenisRef.current?.stop();
+    } else {
+      document.body.style.overflow = previousOverflow;
+      lenisRef.current?.start();
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isLocked]);
+
+  useEffect(() => {
+    const context = gsap.context(() => {
+      gsap.to(".hero-bg-watermark", {
+        yPercent: -8,
+        scale: 0.93,
+        opacity: 0.28,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".home-spacer",
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+
+      gsap.to(".hero-canvas", {
+        yPercent: -4,
+        scale: 0.94,
+        opacity: 0.82,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".home-spacer",
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+    });
+
+    return () => context.revert();
   }, []);
 
   const scrollToComments = (e) => {
@@ -69,7 +122,138 @@ export default function Home() {
     }
   };
 
-  // 3. Hero Three.js Shader Reveal (Liquid FBM + Vertex Wave + Rose-Champagne Edge Glow)
+  // 3. BACKGROUND CONTOUR LINES (Algoritma Stepped Noise Neighbor-Comparison asli LandoNorris.com)
+  useEffect(() => {
+    const canvas = bgCanvasRef.current;
+    if (!canvas) return;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    const bgMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uResolution: {
+          value: new THREE.Vector2(
+            window.innerWidth * Math.min(window.devicePixelRatio || 1, 2),
+            window.innerHeight * Math.min(window.devicePixelRatio || 1, 2)
+          ),
+        },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform vec2 uResolution;
+        varying vec2 vUv;
+
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec3 permute(vec3 x) { return mod289(((x * 34.0) + 1.0) * x); }
+
+        float snoise(vec2 v) {
+          const vec4 C = vec4(
+            0.211324865405187,
+            0.366025403784439,
+           -0.577350269189626,
+            0.024390243902439
+          );
+          vec2 i  = floor(v + dot(v, C.yy));
+          vec2 x0 = v - i + dot(i, C.xx);
+          vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+          vec4 x12 = x0.xyxy + C.xxzz;
+          x12.xy -= i1;
+          i = mod289(i);
+          vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+          vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+          m = m * m;
+          m = m * m;
+          vec3 x = 2.0 * fract(p * C.www) - 1.0;
+          vec3 h = abs(x) - 0.5;
+          vec3 ox = floor(x + 0.5);
+          vec3 a0 = x - ox;
+          m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
+          vec3 g;
+          g.x  = a0.x  * x0.x  + h.x  * x0.y;
+          g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+          return 130.0 * dot(m, g);
+        }
+
+        // Membagi noise skala besar menjadi 4 level (stepped noise)
+        float getLevel(vec2 uv) {
+          vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+          vec2 p = (uv - 0.5) * aspect * 1.15;
+          float t = uTime * 0.07;
+          float n = snoise(p + vec2(t, -t * 0.7)) * 0.5 + 0.5;
+          return floor(n * 4.2);
+        }
+
+        void main() {
+          vec2 texel = 1.25 / uResolution;
+
+          float c = getLevel(vUv);
+          float l = getLevel(vUv - vec2(texel.x, 0.0));
+          float r = getLevel(vUv + vec2(texel.x, 0.0));
+          float u = getLevel(vUv + vec2(0.0, texel.y));
+          float d = getLevel(vUv - vec2(0.0, texel.y));
+
+          // Gambar garis 1px tipis hanya jika level piksel berbeda dengan tetangga atas/bawah/kiri/kanan
+          float isEdge = step(0.1, abs(c - l) + abs(c - r) + abs(c - u) + abs(c - d));
+
+          gl_FragColor = vec4(vec3(1.0, 0.90, 0.92), isEdge * 0.22);
+        }
+      `,
+      transparent: true,
+    });
+
+    const bgMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMat);
+    scene.add(bgMesh);
+
+    let bgRafId;
+    const bgClock = new THREE.Clock();
+
+    const animateBg = () => {
+      bgMat.uniforms.uTime.value = bgClock.getElapsedTime();
+      renderer.render(scene, camera);
+      bgRafId = requestAnimationFrame(animateBg);
+    };
+    animateBg();
+
+    const onResizeBg = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      bgMat.uniforms.uResolution.value.set(
+        window.innerWidth * dpr,
+        window.innerHeight * dpr
+      );
+    };
+    window.addEventListener("resize", onResizeBg);
+
+    return () => {
+      cancelAnimationFrame(bgRafId);
+      window.removeEventListener("resize", onResizeBg);
+      renderer.dispose();
+    };
+  }, []);
+
+  // 4. HERO SECTION: GPU Analytical Metaball Liquid Shader + Raycaster UV Presisi
+  //    - Ukuran helm diperbesar sedikit (HELMET_SIZE = 0.58)
+  //    - Animasi Liquid Blob dihitung langsung di GPU per-piksel (Smooth Minimum Metaball SDF)
+  //      sehingga 100% tajam, kenyal, menyatu & memisah seperti tetesan cairan asli di LandoNorris.com
+  //    - Posisi kursor diproyeksikan langsung ke UV foto menggunakan Raycaster agar akurat di setiap ukuran layar
   useEffect(() => {
     const canvas = heroCanvasRef.current;
     if (!canvas) return;
@@ -91,164 +275,225 @@ export default function Home() {
     );
     camera.position.z = 7.5;
 
-    const trailCanvas = document.createElement("canvas");
-    trailCanvas.width = trailCanvas.height = 512;
-    const trailCtx = trailCanvas.getContext("2d");
-    trailCtx.fillStyle = "black";
-    trailCtx.fillRect(0, 0, 512, 512);
+    // =========================================================================
+    // PENGATURAN UKURAN & POSISI HELM (/atus.png):
+    // - HELMET_SIZE diperbesar dari 0.48 -> 0.58 (58% tinggi bidang foto)
+    // - HELMET_CENTER_Y = 0.63 (posisi vertikal kepala)
+    // =========================================================================
+    const HELMET_SIZE = 0.58;
+    const HELMET_CENTER_X = 0.5;
+    const HELMET_CENTER_Y = 0.63;
 
-    const maskTexture = new THREE.CanvasTexture(trailCanvas);
-    maskTexture.minFilter = maskTexture.magFilter = THREE.LinearFilter;
+    // 10 titik rantai Metaball (Physics Spring Chain) yang dikirim langsung ke GPU Shader
+    const NUM_BLOBS = 10;
+    const blobPositions = Array.from(
+      { length: NUM_BLOBS },
+      () => new THREE.Vector2(HELMET_CENTER_X, HELMET_CENTER_Y)
+    );
+    const blobRadii = new Float32Array(NUM_BLOBS);
 
     const uniforms = {
       uTexBefore: { value: null },
       uTexAfter: { value: null },
-      uMask: { value: maskTexture },
       uTime: { value: 0 },
+      uBeforeAspect: { value: 1.0 },
+      uAfterAspect: { value: 1.0 },
+      uHelmetSize: { value: HELMET_SIZE },
+      uHelmetCenter: {
+        value: new THREE.Vector2(HELMET_CENTER_X, HELMET_CENTER_Y),
+      },
+      uBlobs: { value: blobPositions },
+      uRadii: { value: blobRadii },
     };
 
     const meshGroup = new THREE.Group();
     scene.add(meshGroup);
 
+    let heroMesh = null;
+
     const loader = new THREE.TextureLoader();
     Promise.all([loader.loadAsync(IMG_BEFORE), loader.loadAsync(IMG_AFTER)])
       .then(([texBefore, texAfter]) => {
         texBefore.colorSpace = texAfter.colorSpace = THREE.SRGBColorSpace;
+        texBefore.wrapS = texBefore.wrapT = THREE.ClampToEdgeWrapping;
+        texAfter.wrapS = texAfter.wrapT = THREE.ClampToEdgeWrapping;
+
+        const beforeAspect =
+          (texBefore.image.width || 1) / (texBefore.image.height || 1);
+        const afterAspect =
+          (texAfter.image.width || 1) / (texAfter.image.height || 1);
+
         const height = 4.7;
-        const width =
-          height *
-          ((texBefore.image.width || 1) / (texBefore.image.height || 1));
+        const width = height * beforeAspect;
 
         uniforms.uTexBefore.value = texBefore;
         uniforms.uTexAfter.value = texAfter;
+        uniforms.uBeforeAspect.value = beforeAspect;
+        uniforms.uAfterAspect.value = afterAspect;
 
         const mat = new THREE.ShaderMaterial({
           vertexShader: `
-            uniform float uTime;
-            uniform sampler2D uMask;
             varying vec2 vUv;
-
             void main() {
               vUv = uv;
-              vec3 pos = position;
-
-              // Efek alunan gelombang 3D lembut saat kursor menyentuh area foto
-              float maskVal = texture2D(uMask, uv).r;
-              pos.z += sin(pos.x * 2.5 + uTime * 2.2) * 0.035;
-              pos.z += maskVal * 0.14;
-
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+              // Kedua foto (/atusbefore.png & /atus.png) 100% diam
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
             }
           `,
           fragmentShader: `
-            uniform sampler2D uTexBefore, uTexAfter, uMask;
+            uniform sampler2D uTexBefore, uTexAfter;
             uniform float uTime;
+            uniform float uBeforeAspect;
+            uniform float uAfterAspect;
+            uniform float uHelmetSize;
+            uniform vec2 uHelmetCenter;
+            uniform vec2 uBlobs[10];
+            uniform float uRadii[10];
             varying vec2 vUv;
 
-            vec2 hash2(vec2 p) {
-              p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
-              return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
-            }
+            // Simplex 2D Noise untuk riak organik pada pinggiran cairan
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec3 permute(vec3 x) { return mod289(((x * 34.0) + 1.0) * x); }
 
-            float gnoise(vec2 p) {
-              vec2 i = floor(p);
-              vec2 f = fract(p);
-              vec2 u = f * f * (3.0 - 2.0 * f);
-              return mix(
-                mix(dot(hash2(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
-                    dot(hash2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
-                mix(dot(hash2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
-                    dot(hash2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x),
-                u.y
+            float snoise(vec2 v) {
+              const vec4 C = vec4(
+                0.211324865405187,
+                0.366025403784439,
+               -0.577350269189626,
+                0.024390243902439
               );
+              vec2 i  = floor(v + dot(v, C.yy));
+              vec2 x0 = v - i + dot(i, C.xx);
+              vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+              vec4 x12 = x0.xyxy + C.xxzz;
+              x12.xy -= i1;
+              i = mod289(i);
+              vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+              vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+              m = m * m;
+              m = m * m;
+              vec3 x = 2.0 * fract(p * C.www) - 1.0;
+              vec3 h = abs(x) - 0.5;
+              vec3 ox = floor(x + 0.5);
+              vec3 a0 = x - ox;
+              m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
+              vec3 g;
+              g.x  = a0.x  * x0.x  + h.x  * x0.y;
+              g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+              return 130.0 * dot(m, g);
             }
 
-            float fbm(vec2 p) {
-              float v = 0.0;
-              float a = 0.55;
-              vec2 shift = vec2(100.0);
-              mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-              for (int i = 0; i < 4; ++i) {
-                v += a * gnoise(p);
-                p = rot * p * 2.1 + shift;
-                a *= 0.5;
+            // Polynomial Smooth Minimum (khas LandoNorris.com untuk menggabungkan tetesan cairan secara elastis)
+            float smin(float a, float b, float k) {
+              float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+              return mix(b, a, h) - k * h * (1.0 - h);
+            }
+
+            // Mengambil warna helm (/atus.png) dengan menjaga Aspect Ratio asli 1:1
+            vec4 sampleAfter(vec2 uv) {
+              vec2 rel = uv - uHelmetCenter;
+              float aspectCorrection = uBeforeAspect / max(uAfterAspect, 0.001);
+              vec2 afterUv = vec2(
+                rel.x * aspectCorrection / uHelmetSize,
+                rel.y / uHelmetSize
+              ) + 0.5;
+
+              if (afterUv.x < 0.0 || afterUv.x > 1.0 || afterUv.y < 0.0 || afterUv.y > 1.0) {
+                return vec4(0.0);
               }
-              return v;
+              return texture2D(uTexAfter, afterUv);
             }
 
             void main() {
-              vec2 flow = vec2(
-                fbm(vUv * 5.0 + vec2(uTime * 0.38, -uTime * 0.28)),
-                fbm(vUv * 5.0 + vec2(-uTime * 0.28, uTime * 0.22))
-              );
+              // 1. Foto dasar (/atusbefore.png) sepenuhnya diam
+              vec4 colBefore = texture2D(uTexBefore, vUv);
 
-              vec2 maskUv = vUv + flow * 0.11;
-              float maskVal = texture2D(uMask, maskUv).r;
+              // 2. Foto helm (/atus.png) sepenuhnya diam & proporsional di kepala
+              vec4 colAfter = sampleAfter(vUv);
 
-              float ripple = sin(maskVal * 24.0 - uTime * 4.0) * 0.022 * maskVal;
-              float dynamicMask = clamp(maskVal + ripple, 0.0, 1.0);
+              // 3. Hitung Signed Distance Field (SDF) dari 10 Metaball Cairan secara eksak di GPU
+              vec2 aspectVec = vec2(uBeforeAspect, 1.0);
+              vec2 p = vUv * aspectVec;
 
-              float reveal = smoothstep(0.14, 0.72, dynamicMask);
-              float borderZone = smoothstep(0.16, 0.34, dynamicMask) * (1.0 - smoothstep(0.34, 0.52, dynamicMask));
+              // Distorsi domain organik halus agar pinggiran metaball meliuk seperti cairan hidup
+              vec2 warp = vec2(
+                snoise(p * 3.8 + vec2(uTime * 0.55, -uTime * 0.45)),
+                snoise(p * 3.8 + vec2(-uTime * 0.45, uTime * 0.50))
+              ) * 0.022;
 
-              vec2 distortion = flow * (0.038 * (1.0 - reveal) * dynamicMask);
+              float d = 10.0;
+              for (int i = 0; i < 10; i++) {
+                vec2 bPos = uBlobs[i] * aspectVec;
+                float distToBlob = length((p + warp) - bPos) - uRadii[i];
+                // Gabungkan setiap tetesan dengan kelengkungan cairan (k = 0.065)
+                d = smin(d, distToBlob, 0.065);
+              }
 
-              vec4 beforeR = texture2D(uTexBefore, vUv + distortion * 1.4);
-              vec4 beforeG = texture2D(uTexBefore, vUv);
-              vec4 beforeB = texture2D(uTexBefore, vUv - distortion * 1.4);
-              vec4 colBefore = vec4(beforeR.r, beforeG.g, beforeB.b, beforeG.a);
+              // Potongan tepi cairan anti-aliased super tajam (1px crisp edge tanpa blur/glow)
+              float reveal = 1.0 - smoothstep(-0.003, 0.003, d);
 
-              vec4 afterR = texture2D(uTexAfter, vUv - distortion);
-              vec4 afterG = texture2D(uTexAfter, vUv);
-              vec4 afterB = texture2D(uTexAfter, vUv + distortion);
-              vec4 colAfter = vec4(afterR.r, afterG.g, afterB.b, afterG.a);
+              // Bayangan lembut pada wajah tepat di bawah ketebalan helm (seperti shadow map di LandoNorris.com)
+              float shadowZone = (1.0 - smoothstep(0.0, 0.028, d)) * (1.0 - reveal) * colAfter.a;
+              vec3 shadedBefore = colBefore.rgb * (1.0 - shadowZone * 0.20);
 
-              vec4 finalColor = mix(colBefore, colAfter, reveal);
+              // 4. Gabungkan helm di atas foto dasar sesuai alpha helm
+              float afterFactor = reveal * colAfter.a;
+              vec3 finalRgb = mix(shadedBefore, colAfter.rgb, afterFactor);
+              float finalAlpha = max(colBefore.a, afterFactor);
 
-              // Warna tepi liquid selaras dengan konsep Rose-Gold & Electric Coral
-              vec3 champagneGold = vec3(1.0, 0.88, 0.75);
-              vec3 electricRose = vec3(1.0, 0.28, 0.52);
-              vec3 edgeColor = mix(champagneGold, electricRose, sin(uTime * 2.8 + vUv.x * 5.0) * 0.5 + 0.5);
-
-              finalColor.rgb += edgeColor * borderZone * 0.72;
-
-              gl_FragColor = finalColor;
+              gl_FragColor = vec4(finalRgb, finalAlpha);
             }
           `,
           uniforms,
           transparent: true,
         });
 
-        const mesh = new THREE.Mesh(
-          new THREE.PlaneGeometry(width, height, 48, 48),
+        heroMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(width, height, 32, 32),
           mat
         );
-        mesh.position.set(0.0, -0.08, 1);
-        meshGroup.add(mesh);
+        heroMesh.position.set(0.0, -0.08, 1);
+        meshGroup.add(heroMesh);
       })
       .catch(console.warn);
 
-    let targetX = 0;
-    let targetY = 0;
-    let prevMouseX = 0;
-    let prevMouseY = 0;
-    let mouseHistory = [];
+    // Raycaster agar posisi kursor tepat 100% akurat pada koordinat UV foto
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2();
+    let targetUvX = HELMET_CENTER_X;
+    let targetUvY = HELMET_CENTER_Y;
+    let lastUserMove = -10000;
+    let targetParallaxX = 0;
+    let targetParallaxY = 0;
+    let currentParallaxX = 0;
+    let currentParallaxY = 0;
+    let pointerOverPhoto = false;
+
+    // Physics state untuk 10 titik rantai cairan (Spring Chain)
+    const chainX = new Float32Array(NUM_BLOBS).fill(HELMET_CENTER_X);
+    const chainY = new Float32Array(NUM_BLOBS).fill(HELMET_CENTER_Y);
+    const velX = new Float32Array(NUM_BLOBS).fill(0);
+    const velY = new Float32Array(NUM_BLOBS).fill(0);
 
     const onPointerMove = (e) => {
-      targetX = (e.clientX / window.innerWidth) * 2 - 1;
-      targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+      pointerNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointerNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-      const normX = (e.clientX / window.innerWidth) * 512;
-      const normY = (e.clientY / window.innerHeight) * 512;
-      const speed = Math.hypot(normX - prevMouseX, normY - prevMouseY);
-      prevMouseX = normX;
-      prevMouseY = normY;
-
-      mouseHistory.push({
-        x: normX,
-        y: normY,
-        radius: Math.min(68, 42 + speed * 0.45),
-      });
+      if (heroMesh) {
+        raycaster.setFromCamera(pointerNDC, camera);
+        const hits = raycaster.intersectObject(heroMesh);
+        if (hits.length > 0 && hits[0].uv) {
+          targetUvX = hits[0].uv.x;
+          targetUvY = hits[0].uv.y;
+          targetParallaxX = pointerNDC.x;
+          targetParallaxY = pointerNDC.y;
+          pointerOverPhoto = true;
+          lastUserMove = performance.now();
+        } else {
+          pointerOverPhoto = false;
+        }
+      }
     };
     window.addEventListener("pointermove", onPointerMove);
 
@@ -256,39 +501,67 @@ export default function Home() {
     const clock = new THREE.Clock();
 
     const animate = () => {
-      uniforms.uTime.value = clock.getElapsedTime();
+      const elapsed = clock.getElapsedTime();
+      uniforms.uTime.value = elapsed;
 
-      // Fade jejak kursor secara perlahan
-      trailCtx.fillStyle = "rgba(0, 0, 0, 0.026)";
-      trailCtx.fillRect(0, 0, 512, 512);
-
-      for (const pt of mouseHistory) {
-        const radGrad = trailCtx.createRadialGradient(
-          pt.x,
-          pt.y,
-          0,
-          pt.x,
-          pt.y,
-          pt.radius
-        );
-        radGrad.addColorStop(0, "rgba(255, 255, 255, 0.55)");
-        radGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.22)");
-        radGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-        trailCtx.fillStyle = radGrad;
-        trailCtx.beginPath();
-        trailCtx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
-        trailCtx.fill();
+      if (heroMesh) {
+        currentParallaxX +=
+          ((pointerOverPhoto ? targetParallaxX : 0) - currentParallaxX) * 0.045;
+        currentParallaxY +=
+          ((pointerOverPhoto ? targetParallaxY : 0) - currentParallaxY) * 0.045;
+        const breathingScale = 1 + Math.sin(elapsed * 0.48) * 0.008;
+        heroMesh.position.x =
+          Math.sin(elapsed * 0.42) * 0.035 + currentParallaxX * 0.12;
+        heroMesh.position.y =
+          -0.08 + Math.sin(elapsed * 0.62) * 0.055 - currentParallaxY * 0.1;
+        heroMesh.rotation.z = -currentParallaxX * 0.012;
+        heroMesh.scale.set(breathingScale, breathingScale, 1);
       }
-      mouseHistory = [];
-      maskTexture.needsUpdate = true;
 
-      // Paralaks kamera & rotasi 3D halus
-      camera.position.x += (targetX * 0.32 - camera.position.x) * 0.05;
-      camera.position.y += (targetY * 0.28 - camera.position.y) * 0.05;
-      camera.lookAt(0, 0, 0);
+      const isIdle = performance.now() - lastUserMove > 1600;
 
-      meshGroup.rotation.y += (targetX * 0.07 - meshGroup.rotation.y) * 0.08;
-      meshGroup.rotation.x += (-targetY * 0.05 - meshGroup.rotation.x) * 0.08;
+      if (isIdle) {
+        // S-Shaped Figure-8 Liquid Sweep otomatis tepat di atas area helm/kepala
+        // sehingga helm selalu terlihat beranimasi hidup secara organik walau tanpa kursor
+        const t = elapsed * 1.25;
+        targetUvX =
+          HELMET_CENTER_X +
+          Math.sin(t) * 0.13 +
+          Math.cos(t * 1.7) * 0.04;
+        targetUvY =
+          HELMET_CENTER_Y +
+          Math.sin(t * 2.0) * 0.11 +
+          Math.cos(t * 0.8) * 0.04;
+      }
+
+      // Update rantai pegas (Spring-Damper Physics) untuk ke-10 blob cairan
+      // Blob 0 mengejar target utama, Blob 1..9 mengejar blob di depannya sehingga membentuk ekor cairan kenyal
+      let headSpeed = 0;
+      for (let i = 0; i < NUM_BLOBS; i++) {
+        const goalX = i === 0 ? targetUvX : chainX[i - 1];
+        const goalY = i === 0 ? targetUvY : chainY[i - 1];
+
+        const stiffness = i === 0 ? 0.18 : 0.24 - i * 0.012;
+        const damping = 0.72;
+
+        velX[i] = (velX[i] + (goalX - chainX[i]) * stiffness) * damping;
+        velY[i] = (velY[i] + (goalY - chainY[i]) * stiffness) * damping;
+
+        chainX[i] += velX[i];
+        chainY[i] += velY[i];
+
+        if (i === 0) {
+          headSpeed = Math.hypot(velX[0], velY[0]);
+        }
+
+        blobPositions[i].set(chainX[i], chainY[i]);
+
+        // Ukuran tiap tetesan mengecil secara organik dari kepala ke ekor (tapered liquid drop)
+        const taper = 1.0 - (i / NUM_BLOBS) * 0.62;
+        const pulse = Math.sin(elapsed * 2.8 - i * 0.6) * 0.008;
+        const speedStretch = Math.min(0.035, headSpeed * 1.4);
+        blobRadii[i] = (0.095 + speedStretch) * taper + pulse;
+      }
 
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -316,7 +589,6 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
         .grido-wrapper {
-          /* Palet Konsep: Velvet Rose & Warm Champagne (Kontras Tinggi & Elegan) */
           --bg-gradient: radial-gradient(
             circle at 55% 36%,
             #f7a8b8 0%,
@@ -364,7 +636,6 @@ export default function Home() {
           border: 2px solid rgba(255, 255, 255, 0.85);
           border-radius: 42% 42% 50% 50%;
           overflow: hidden;
-          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
         }
 
         .veil-helmet-fill {
@@ -418,15 +689,12 @@ export default function Home() {
           box-sizing: border-box;
         }
 
-        /* Ambient Grid Halus di Latar Belakang */
-        .hero-ambient-grid {
+        /* Canvas Background: Stepped Noise 1px Contour Lines (LandoNorris.com) */
+        .hero-bg-canvas {
           position: absolute;
           inset: 0;
-          background-image:
-            linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-          background-size: 5rem 5rem;
-          mask-image: radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.75) 10%, transparent 85%);
+          width: 100%;
+          height: 100%;
           pointer-events: none;
           z-index: 1;
         }
@@ -446,7 +714,7 @@ export default function Home() {
           font-weight: 800;
           line-height: 0.78;
           letter-spacing: -0.04em;
-          color: rgba(255, 245, 247, 0.22);
+          color: rgba(255, 245, 247, 0.18);
           user-select: none;
           pointer-events: none;
           z-index: 1;
@@ -463,7 +731,7 @@ export default function Home() {
           opacity: 1;
         }
 
-        /* Canvas Three.js */
+        /* Canvas Three.js Hero Foreground */
         .hero-canvas {
           position: absolute;
           inset: 0;
@@ -486,7 +754,7 @@ export default function Home() {
           box-sizing: border-box;
         }
 
-        /* Top Bar Minimalis supaya flexbox space-between seimbang */
+        /* Top Bar Minimalis */
         .hero-top-bar {
           display: flex;
           justify-content: space-between;
@@ -523,7 +791,6 @@ export default function Home() {
           height: 7px;
           border-radius: 50%;
           background: #4ade80;
-          box-shadow: 0 0 10px #4ade80;
           animation: pulseGlow 2s infinite ease-in-out;
         }
 
@@ -575,7 +842,6 @@ export default function Home() {
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
           border-radius: 6px;
-          box-shadow: 0 14px 34px rgba(28, 5, 12, 0.22);
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                       background 0.3s ease,
                       border-color 0.3s ease;
@@ -683,7 +949,6 @@ export default function Home() {
           line-height: 0.92;
           text-transform: uppercase;
           letter-spacing: -0.01em;
-          text-shadow: 0 10px 30px rgba(38, 6, 15, 0.35);
         }
 
         .hero-foot-actions {
@@ -741,15 +1006,39 @@ export default function Home() {
           border: none;
           font-weight: 700;
           clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-          box-shadow: 0 10px 24px rgba(28, 5, 12, 0.25);
-          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                      box-shadow 0.25s ease;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: pointer;
         }
 
         .cta-button:hover {
           transform: translateY(-3px);
-          box-shadow: 0 14px 28px rgba(28, 5, 12, 0.38);
+        }
+
+        .lock-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 2.85rem;
+          padding: 0 1.1rem;
+          border: 1px solid var(--border-glass);
+          color: var(--foreground);
+          background: var(--surface-card);
+          font: inherit;
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: color 0.25s ease, background 0.25s ease,
+                      border-color 0.25s ease, transform 0.25s ease;
+        }
+
+        .lock-button:hover,
+        .lock-button[aria-pressed="true"] {
+          color: #3d101c;
+          background: var(--accent-gold);
+          border-color: var(--accent-gold);
+          transform: translateY(-2px);
         }
 
         /* Wrapper Konten Bawah agar menutup Sticky Hero dengan mulus */
@@ -817,17 +1106,18 @@ export default function Home() {
 
       {/* Hero Section (Sticky) */}
       <section data-hero id="home" className="hero-section">
-        <div className="hero-ambient-grid" aria-hidden="true" />
+        {/* 1. Animasi Garis Kontur 1px di Background (Stepped Noise Neighbor-Comparison asli LandoNorris.com) */}
+        <canvas ref={bgCanvasRef} className="hero-bg-canvas" />
 
-        {/* 1. Teks Watermark Raksasa di Latar Belakang */}
+        {/* 2. Teks Watermark Raksasa di Latar Belakang */}
         <div className="hero-bg-watermark" aria-hidden="true">
           DEV
         </div>
 
-        {/* 2. Interactive Three.js Shader Canvas */}
+        {/* 3. Interactive Three.js Shader Canvas (GPU Analytical Metaball Liquid) */}
         <canvas ref={heroCanvasRef} className="hero-canvas" />
 
-        {/* 3. Foreground UI & Content */}
+        {/* 4. Foreground UI & Content */}
         <div className="hero-content">
 
           {/* Middle: Panel Telemetri di Kanan */}
@@ -923,6 +1213,15 @@ export default function Home() {
                   Git
                 </a>
               </div>
+
+              <button
+                type="button"
+                className="lock-button"
+                aria-pressed={isLocked}
+                onClick={() => setIsLocked((locked) => !locked)}
+              >
+                {isLocked ? "Back to scroll" : "Tap to lock"}
+              </button>
 
               <button
                 type="button"
