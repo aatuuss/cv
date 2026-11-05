@@ -8,10 +8,45 @@ export default function Navbar({ onNavigateComments }) {
 
   const navItems = [
     { index: "01", label: "About", href: "#about" },
-    { index: "02", label: "Skills", href: "#skills" },
+    { index: "02", label: "Experience", href: "#carrier" },
     { index: "03", label: "Projects", href: "#projects" },
-    { index: "04", label: "Contact", href: "#contact" },
+    { index: "04", label: "Achievements", href: "#certificates" },
   ];
+
+  const handleNavClick = (e, href, label) => {
+    e.preventDefault();
+    setActiveTab(label);
+    setMobileMenuOpen(false);
+    const targetId = href.replace("#", "");
+    let targetEl = document.getElementById(targetId);
+    if (!targetEl && targetId === "certificates") targetEl = document.getElementById("achievements");
+    if (!targetEl && targetId === "carrier") targetEl = document.getElementById("experience");
+
+    if (targetEl) {
+      if (window.lenis && typeof window.lenis.scrollTo === "function") {
+        window.lenis.scrollTo(targetEl, { offset: 0, duration: 1.25 });
+      } else {
+        targetEl.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
+  const handleConnectClick = (e) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (onNavigateComments) {
+      onNavigateComments();
+    } else {
+      const targetEl = document.getElementById("contact");
+      if (targetEl) {
+        if (window.lenis && typeof window.lenis.scrollTo === "function") {
+          window.lenis.scrollTo(targetEl, { offset: 0, duration: 1.25 });
+        } else {
+          targetEl.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+  };
 
   // 1. Deteksi Scroll & Scroll-Spy Otomatis
   useEffect(() => {
@@ -25,10 +60,12 @@ export default function Navbar({ onNavigateComments }) {
 
       for (const item of navItems) {
         const id = item.href.replace("#", "");
-        const el = document.getElementById(id);
+        let el = document.getElementById(id);
+        if (!el && id === "carrier") el = document.getElementById("experience");
+        if (!el && id === "certificates") el = document.getElementById("achievements");
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 240 && rect.bottom >= 160) {
+          if (rect.top <= 260 && rect.bottom >= 140) {
             setActiveTab(item.label);
             break;
           }
@@ -99,11 +136,12 @@ export default function Navbar({ onNavigateComments }) {
           pointer-events: none;
         }
 
-        .navbar-wrapper.scrolled {
+                .navbar-wrapper.scrolled {
           padding: 0.65rem 1.25rem;
           top: 0.6rem;
         }
 
+        /* 1. SEBELUM SCROLL: Tampilan Asli yang Luas (1360px), Tanpa Background Bar */
         .navbar-inner {
           pointer-events: auto;
           position: relative;
@@ -113,10 +151,99 @@ export default function Navbar({ onNavigateComments }) {
           width: 100%;
           max-width: 1360px;
           margin: 0 auto;
-          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          clip-path: none;
+          padding: 0;
+          transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Saat di-scroll: Berubah menjadi Architectural Telemetry Console (Bukan kapsul bulat pasaran) */
+        .navbar-inner::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 18%;
+          right: 18%;
+          height: 1.5px;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            var(--nav-gold),
+            transparent
+          );
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.35s ease;
+        }
+
+        /* Warna Kontras Jelas Sebelum Scroll (Di atas background hero terang #F5F5F0) */
+        .navbar-wrapper:not(.scrolled) .nav-logo-title {
+          color: #1c050c !important;
+          font-family: 'Oswald', Impact, sans-serif !important;
+          font-size: 1.35rem;
+          font-weight: 800;
+          line-height: 0.95;
+          letter-spacing: 0.01em;
+          text-transform: uppercase;
+        }
+        .navbar-wrapper.scrolled .nav-logo-title {
+          color: #fff9fa !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-logo-slash {
+          color: #d96b7e !important;
+        }
+        .navbar-wrapper:not(.scrolled) .brand-telemetry-sub {
+          color: #5A484E !important;
+        }
+        .navbar-wrapper:not(.scrolled) .brand-emblem {
+          background: rgba(28, 5, 12, 0.08) !important;
+          border: 1px solid rgba(28, 5, 12, 0.22) !important;
+          color: #1c050c !important;
+        }
+        .navbar-wrapper:not(.scrolled) .brand-cluster:hover .brand-emblem {
+          background: #1c050c !important;
+          color: #fff9fa !important;
+          border-color: #1c050c !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-hud-deck {
+          background: rgba(28, 6, 14, 0.88) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 232, 236, 0.22) !important;
+          box-shadow: 0 10px 30px rgba(18, 3, 8, 0.35) !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-link {
+          color: #f7eef0 !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-link:hover,
+        .navbar-wrapper:not(.scrolled) .nav-link.active {
+          color: #ffffff !important;
+          background: rgba(255, 255, 255, 0.08) !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-link.active {
+          border-color: rgba(255, 224, 181, 0.4) !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-index {
+          color: #ffe0b5 !important;
+        }
+        .navbar-wrapper:not(.scrolled) .deck-corner {
+          border-color: #ffe0b5 !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-action-btn {
+          background: #1c050c !important;
+          color: #fff9fa !important;
+          border-color: #1c050c !important;
+        }
+        .navbar-wrapper:not(.scrolled) .nav-action-btn:hover {
+          background: #d96b7e !important;
+          border-color: #d96b7e !important;
+        }
+        .navbar-wrapper:not(.scrolled) .burger-line {
+          background: #1c050c !important;
+        }
+
+        /* 2. SAAT DI-SCROLL: Meramping Menjadi Architectural Telemetry Console Gelap */
         .navbar-wrapper.scrolled .navbar-inner {
           max-width: 1080px;
           background: var(--nav-bg-scrolled);
@@ -135,22 +262,8 @@ export default function Navbar({ onNavigateComments }) {
           box-shadow: 0 20px 44px rgba(18, 3, 8, 0.45);
         }
 
-        /* Garis aksen emas tipis di atas bar saat scrolled */
         .navbar-wrapper.scrolled .navbar-inner::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 18%;
-          right: 18%;
-          height: 1.5px;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            var(--nav-gold),
-            transparent
-          );
           opacity: 0.75;
-          pointer-events: none;
         }
 
         /* 1. KIRI: Brand Identity + Live Telemetry Clock */
@@ -521,7 +634,7 @@ export default function Navbar({ onNavigateComments }) {
           <span className="brand-emblem">NS</span>
           <div className="brand-text-col">
             <span className="nav-logo-title">
-              NIKMATUS<span className="nav-logo-slash">//</span>26
+              NIKMATUS SOLIHAH
             </span>
             <span className="brand-telemetry-sub">
               <span>IDN</span>
@@ -544,7 +657,7 @@ export default function Navbar({ onNavigateComments }) {
                 <a
                   href={item.href}
                   className={`nav-link ${activeTab === item.label ? "active" : ""}`}
-                  onClick={() => setActiveTab(item.label)}
+                  onClick={(e) => handleNavClick(e, item.href, item.label)}
                 >
                   <span className="nav-index">{item.index}</span>
                   <span>{item.label}</span>
@@ -557,7 +670,7 @@ export default function Navbar({ onNavigateComments }) {
         {/* 3. Kanan: Tombol Action Chamfered */}
         <button
           type="button"
-          onClick={onNavigateComments}
+          onClick={handleConnectClick}
           className="nav-action-btn desktop-only"
         >
           <span className="status-dot" />
@@ -597,10 +710,7 @@ export default function Navbar({ onNavigateComments }) {
               key={item.label}
               href={item.href}
               className={`nav-link ${activeTab === item.label ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab(item.label);
-                setMobileMenuOpen(false);
-              }}
+              onClick={(e) => handleNavClick(e, item.href, item.label)}
             >
               <span>{item.label}</span>
               <span className="nav-index">/{item.index}</span>
@@ -608,10 +718,7 @@ export default function Navbar({ onNavigateComments }) {
           ))}
           <button
             type="button"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              if (onNavigateComments) onNavigateComments();
-            }}
+            onClick={handleConnectClick}
             className="nav-action-btn"
           >
             <span className="status-dot" />

@@ -9,7 +9,7 @@ const PROJECTS_DATA = [
     year: "2026",
     description:
       "Sistem manajemen berbasis web end-to-end dengan arsitektur komponen modular, pencarian real-time, serta optimasi performa tinggi.",
-    image: "/project1.png",
+    image: "/Device Mashups.png",
     stack: ["Next.js", "React", "Tailwind CSS", "Supabase"],
     liveUrl: "#",
     repoUrl: "#",
@@ -21,7 +21,7 @@ const PROJECTS_DATA = [
     year: "2026",
     description:
       "Eksplorasi antarmuka web interaktif menggunakan Three.js custom GLSL shader, transisi riak gelombang air, dan Lenis smooth scroll.",
-    image: "/project2.png",
+    image: "/Device Mashups (1).png",
     stack: ["React", "Three.js", "GLSL", "Motion"],
     liveUrl: "#",
     repoUrl: "#",
@@ -33,7 +33,7 @@ const PROJECTS_DATA = [
     year: "2025",
     description:
       "Perancangan antarmuka korporat di Figma dan implementasi kode berstandar Core Web Vitals untuk kecepatan muat instan.",
-    image: "/project3.png",
+    image: "/Device Mashups (2).png",
     stack: ["Next.js", "Figma", "Tailwind CSS", "SEO"],
     liveUrl: "#",
     repoUrl: "#",
@@ -45,7 +45,7 @@ const PROJECTS_DATA = [
     year: "2025",
     description:
       "Aplikasi utilitas dengan integrasi database terstruktur, antarmuka bersih bebas distraksi, dan manajemen state yang presisi.",
-    image: "/project4.png",
+    image: "/Device Mashups.png",
     stack: ["React", "Laravel", "MySQL", "JavaScript"],
     liveUrl: "#",
     repoUrl: "#",
@@ -382,10 +382,15 @@ export default function Project() {
         .slide-media-box {
           position: relative;
           width: 100%;
-          min-height: 280px;
-          background: linear-gradient(135deg, #2d0916 0%, #130308 100%);
+          min-height: 290px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: radial-gradient(circle at center, rgba(68, 17, 34, 0.45) 0%, rgba(20, 4, 10, 0.95) 100%);
           border: 1px solid var(--pr-border);
           overflow: hidden;
+          padding: 1.15rem;
+          box-sizing: border-box;
           clip-path: polygon(
             0 0,
             100% 0,
@@ -398,13 +403,16 @@ export default function Project() {
         .slide-img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          max-height: 330px;
+          object-fit: contain;
+          object-position: center;
           display: block;
+          filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.55));
           transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .project-slide-card:hover .slide-img {
-          transform: scale(1.05);
+          transform: scale(1.035);
         }
 
         .slide-index-badge {
@@ -601,9 +609,6 @@ export default function Project() {
         {/* 1. Header Atas */}
         <header className="projects-top-bar">
           <div>
-            <div className="projects-kicker">
-              <span>ARCHIVE // 03 — SELECTED WORKS</span>
-            </div>
             <h2 className="projects-heading">
               FEATURED
               <span className="projects-heading-outline">PROJECTS</span>

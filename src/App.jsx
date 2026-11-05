@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import Home from "./Home";
 import About from "./About";
-import Lanyard from "./components/Lanyard/Lanyard";
 import Project from "./Project";
 import Certificates from "./Certificates";
+import Carrier from "./Carrier";
+import Contact from "./Contact";
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -77,18 +78,18 @@ export default function App() {
           pointer-events: ${isLoaded ? "auto" : "none"};
         }
 
-        /* 1. Mengunci Home agar 100% diam di layar */
+        /* 1. Pembungkus Home yang dikunci di belakang */
         .fixed-home-wrapper {
           position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: 100vh;
-          z-index: 1;
+          z-index: ${isLoaded ? 1 : 150};
           overflow: hidden;
         }
 
-        /* 2. Ruang kosong transparan sebesar layar agar Home terlihat penuh di awal */
+        /* 2. Penahan setinggi 1 layar supaya About mulai dari bawah layar */
         .home-spacer {
           width: 100%;
           height: 100vh;
@@ -133,8 +134,10 @@ export default function App() {
         </div>
       </main>
 
+<Carrier />
       <Project />
       <Certificates />
+      <Contact />
     </div>
   );
 }

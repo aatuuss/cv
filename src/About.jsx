@@ -172,7 +172,7 @@ export default function About() {
 
   const files = [
     { name: "About.md", index: "01", code: "BIO // PROFILE" },
-    { name: "Tech Stack.md", index: "02", code: "SYS // ARSENAL" },
+    { name: "Tech Stack.md", index: "02", code: "SYS // Tech" },
   ];
 
   const coreFocusItems = [
@@ -187,31 +187,31 @@ export default function About() {
       index: "01",
       title: "UI/UX Design",
       description:
-        "Designing intuitive user interfaces, wireframes, and interactive prototypes with modern design systems.",
-      items: ["Canva", "Figma"],
+        "Designing modern, user-friendly interfaces, interactive wireframes, and high-fidelity mockups in Figma and Canva with a strong focus on usability and design consistency.",
+      items: ["Figma", "Canva"],
       wide: false,
     },
     {
       index: "02",
-      title: "Website Developer",
+      title: "Frontend Architecture",
       description:
-        "Building robust web applications and database systems with secure and scalable architecture.",
-      items: ["React", "Next.js", "JavaScript", "HTML5/CSS3", "Tailwind CSS", "Supabase"],
+        "Transforming Figma designs into responsive, accessible, and production-ready web applications using React.js, Next.js, and TypeScript across multiple devices and browsers.",
+      items: ["React", "Next.js", "JavaScript", "HTML5/CSS3", "Tailwind CSS"],
       wide: false,
     },
     {
       index: "03",
-      title: "Frontend Developer",
+      title: "Backend & Systems",
       description:
-        "Crafting clean, fast, and fully responsive user interfaces using modern CSS frameworks and JS.",
-      items: ["React", "Next.js", "JavaScript", "HTML5/CSS3", "Tailwind CSS", "Supabase"],
+        "Integrating relational databases, authentication, and RESTful API endpoints with scalable architecture.",
+      items: ["Laravel", "PHP", "MySQL", "Supabase"],
       wide: false,
     },
     {
       index: "04",
-      title: "Performance & Optimization",
+      title: "Performance & SEO",
       description:
-        "Optimizing web assets, structure, and database queries for maximum speed and search visibility.",
+        "Analyzing web performance and executing technical SEO strategies to improve Google search rankings, increase visibility, and drive higher organic traffic.",
       items: ["SEO", "Web Vitals"],
       wide: false,
     },
@@ -219,8 +219,8 @@ export default function About() {
       index: "05",
       title: "Tools & Development Workflow",
       description:
-        "Environments, version control, and design tools used daily to streamline development.",
-      items: ["Git", "GitHub", "VS Code", "Visual Studio", "Figma"],
+        "Streamlining agile end-to-end development workflows—from version control and collaborative code review on GitHub to fast builds with Vite and cloud deployment on Hostinger.",
+      items: ["Git", "GitHub", "VS Code", "Hostinger", "Vercel"],
       wide: true,
     },
   ];
@@ -923,9 +923,9 @@ export default function About() {
             <span className="node-label">SYS.ONLINE</span>
           </div>
           <span className="window-title">
-            TELEMETRY ARCHIVE // {activeFile.toUpperCase()}
+           {activeFile.toUpperCase()}
           </span>
-          <span className="window-coord">SEASON 2026 · IDN</span>
+          <span className="window-coord"></span>
         </div>
 
         {/* Path Breadcrumb Bar */}
@@ -944,7 +944,7 @@ export default function About() {
           {/* 1. Sidebar File Selector */}
           <div className="terminal-sidebar-files">
             <div className="sidebar-top-group">
-              <span className="sidebar-heading">MODULES // 02</span>
+              
               {files.map((fileObj) => (
                 <button
                   key={fileObj.name}
@@ -966,10 +966,10 @@ export default function About() {
             <div className="sidebar-telemetry-box">
               <span className="b-corner tl" />
               <span className="b-corner br" />
-              <span className="sidebar-telemetry-title">DRIVER SPEC</span>
+              <span className="sidebar-telemetry-title">ABOUT ME</span>
               <span>EDU: SMKN 6 MALANG</span>
               <span>ROLE: FRONTEND &amp; UI/UX</span>
-              <span>STATUS: AVAILABLE</span>
+              <span>STATUS: AVAILABLE FOR HIRE</span>
             </div>
           </div>
 
@@ -1012,16 +1012,12 @@ export default function About() {
           >
             {activeFile === "About.md" && (
               <>
-                <motion.div className="section-kicker" variants={itemVariants}>
-                  <span>DRIVER DOSSIER // 01 — ENGINEERING &amp; DESIGN</span>
-                </motion.div>
 
                 <motion.h2 className="main-headline" variants={itemVariants}>
-                  Combining frontend engineering principles with a{" "}
+                  Building digital products & 
                   <span className="headline-accent">
-                    modern, intuitive UI/UX
+                     experiences.
                   </span>{" "}
-                  design approach.
                 </motion.h2>
 
                 <motion.div className="bio-grid" variants={itemVariants}>
@@ -1030,9 +1026,6 @@ export default function About() {
                     <span className="b-corner tr" />
                     <span className="b-corner bl" />
                     <span className="b-corner br" />
-                    <span className="bio-card-index">
-                      01 // FOUNDATION &amp; PHILOSOPHY
-                    </span>
                     <p className="bio-paragraph">
                       With a Software Engineering background from{" "}
                       <strong>SMK Negeri 6 Malang</strong>, I am accustomed to
@@ -1048,9 +1041,6 @@ export default function About() {
                     <span className="b-corner tr" />
                     <span className="b-corner bl" />
                     <span className="b-corner br" />
-                    <span className="bio-card-index">
-                      02 // EXECUTION &amp; SCALABILITY
-                    </span>
                     <p className="bio-paragraph">
                       Beyond coding with <strong>Next.js and React</strong>, I
                       focus on designing interfaces in Figma, optimizing{" "}
@@ -1088,9 +1078,6 @@ export default function About() {
 
             {activeFile === "Tech Stack.md" && (
               <>
-                <motion.div className="section-kicker" variants={itemVariants}>
-                  <span>SYSTEM ARSENAL // 02 — TECH STACK MATRIX</span>
-                </motion.div>
 
                 <motion.h2 className="main-headline" variants={itemVariants}>
                   Technical Stack &amp;{" "}
@@ -1116,9 +1103,6 @@ export default function About() {
 
                       <div>
                         <div className="tech-card-head">
-                          <span className="tech-card-idx">
-                            MODULE // {category.index}
-                          </span>
                           <span className="tech-card-count">
                             {category.items.length} TOOLS
                           </span>

@@ -6,23 +6,27 @@ import { motion, AnimatePresence } from "motion/react";
 const CERTIFICATES_DATA = [
   {
     id: "01",
-    title: "Judul Sertifikat 1 Anda",
-    issuer: "Penyelenggara / Instansi",
-    date: "2025",
-    credentialId: "ID-SERTIFIKAT-01",
-    image: "/sertifikat1.png", // sesuaikan dengan nama file gambar Anda
+    title: "Front-End Developer Certificate of Competency",
+    issuer: "PT. Sekawan Media Informatika",
+    date: "2024",
+    credentialId: "SEKAWAN-FED-2024",
+    category: "Front-End Development",
+    image: "/sekawan.jpg",
     description:
-      "Deskripsi kompetensi atau pencapaian dari sertifikat pertama Anda.",
+      "Sertifikasi kompetensi pembangunan aplikasi web end-to-end mencakup arsitektur React.js, integrasi RESTful API, manajemen state terstruktur, dan performa tinggi.",
+    skills: ["React.js", "REST API", "JavaScript", "Tailwind CSS"],
   },
   {
     id: "02",
-    title: "Judul Sertifikat 2 Anda",
-    issuer: "Penyelenggara / Instansi",
-    date: "2025",
-    credentialId: "ID-SERTIFIKAT-02",
-    image: "/sertifikat2.png", // sesuaikan dengan nama file gambar Anda
+    title: "Certificate of Achievement — Web Design, Front-End & UI/UX Intern",
+    issuer: "PT. Infimech Harmony Teknologi",
+    date: "2026",
+    credentialId: "INFIMECH-UIUX-2026",
+    category: "UI/UX Design & Front-End",
+    image: "/Infimech Certificate Nikamtus Sholihah_page-0001.jpg",
     description:
-      "Deskripsi kompetensi atau pencapaian dari sertifikat kedua Anda.",
+      "Sertifikasi pencapaian magang industri berfokus pada desain UI/UX di Figma, arsitektur frontend web responsif, aksesibilitas sistem komponen, serta optimasi Core Web Vitals.",
+    skills: ["Figma", "Tailwind CSS", "JavaScript", "React.js", "Canva", "GitHub"],
   },
 ];
 
@@ -40,6 +44,7 @@ export default function Certificates() {
 
   return (
     <section id="certificates" className="certificates-section">
+      <div id="achievements" style={{ position: "absolute", top: 0 }} aria-hidden="true" />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Oswald:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
@@ -215,8 +220,13 @@ export default function Certificates() {
         .cert-preview-box {
           position: relative;
           width: 100%;
-          aspect-ratio: 16 / 10.5;
-          background: linear-gradient(135deg, #2d0916 0%, #130308 100%);
+          aspect-ratio: 16 / 11;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.95rem;
+          box-sizing: border-box;
+          background: radial-gradient(circle at center, rgba(68, 17, 34, 0.42) 0%, rgba(20, 4, 10, 0.95) 100%);
           border: 1px solid var(--cr-border);
           overflow: hidden;
           clip-path: polygon(
@@ -231,13 +241,16 @@ export default function Certificates() {
         .cert-img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          max-height: 295px;
+          object-fit: contain;
+          object-position: center;
           display: block;
+          filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
           transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .cert-card:hover .cert-img {
-          transform: scale(1.045);
+          transform: scale(1.03);
         }
 
         .cert-preview-fallback {
@@ -319,6 +332,25 @@ export default function Certificates() {
           text-transform: uppercase;
           margin: 0;
           color: var(--cr-text);
+        }
+
+        .cert-skills-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.45rem;
+          margin-top: 0.65rem;
+          padding-top: 0.75rem;
+          border-top: 1px solid var(--cr-border);
+        }
+
+        .cert-skill-pill {
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          padding: 0.22rem 0.55rem;
+          background: rgba(20, 4, 10, 0.65);
+          border: 1px solid var(--cr-border);
+          color: var(--cr-gold);
+          letter-spacing: 0.05em;
         }
 
         .cert-desc {
@@ -454,15 +486,6 @@ export default function Certificates() {
       <div className="certs-container">
         {/* 1. Header */}
         <header className="certs-header">
-          <div className="certs-top-meta">
-            <span className="certs-kicker">
-              <span className="kicker-square" />
-              CREDENTIALS // 04 — VERIFIED ACHIEVEMENTS
-            </span>
-            <span className="certs-count-meta">
-              RECORDS [ 0{CERTIFICATES_DATA.length} ]
-            </span>
-          </div>
 
           <h2 className="certs-heading">
             HONORS &amp;
@@ -511,6 +534,15 @@ export default function Certificates() {
                   <span className="cert-issuer">{cert.issuer}</span>
                   <h3 className="cert-title">{cert.title}</h3>
                   <p className="cert-desc">{cert.description}</p>
+                {cert.skills && (
+                  <div className="cert-skills-wrap">
+                    {cert.skills.map((s) => (
+                      <span key={s} className="cert-skill-pill">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 </div>
               </div>
 
