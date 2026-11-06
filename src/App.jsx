@@ -103,9 +103,10 @@ export default function App() {
           width: 100%;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 920px) {
           .fixed-navbar-wrapper {
-            padding: 0.5rem 1.25rem;
+            padding: 0.75rem 1.25rem;
+            z-index: 100000000;
           }
         }
       `}</style>

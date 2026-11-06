@@ -1,10 +1,40 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export default function Navbar({ onNavigateComments }) {
   const [activeTab, setActiveTab] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [localTime, setLocalTime] = useState("");
+
+  const mobileNavItems = [
+    { label: "About", href: "#about" },
+    { label: "Experience", href: "#carrier" },
+    { label: "Projects", href: "#projects" },
+    { label: "Achievements", href: "#certificates" },
+    { label: "Contact", href: "#contact" },
+  ];
+
+  // Lock body scroll saat mobile menu aktif
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  // Support ESC key to close mobile menu
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const navItems = [
     { index: "01", label: "About", href: "#about" },
@@ -17,6 +47,10 @@ export default function Navbar({ onNavigateComments }) {
     e.preventDefault();
     setActiveTab(label);
     setMobileMenuOpen(false);
+    if (href === "#contact" && onNavigateComments) {
+      onNavigateComments();
+      return;
+    }
     const targetId = href.replace("#", "");
     let targetEl = document.getElementById(targetId);
     if (!targetEl && targetId === "certificates") targetEl = document.getElementById("achievements");
@@ -509,73 +543,334 @@ export default function Navbar({ onNavigateComments }) {
           transform: translate(3px, -3px);
         }
 
-        /* 4. Tombol Menu Mobile (Bespoke Telemetry Trigger) */
+        /* 4. Tombol Menu Mobile (Morphing Toggle & Close di Posisi yang Sama) */
         .mobile-toggle {
           display: none;
-          position: relative;
-          background: var(--nav-bg-glass);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid var(--nav-border);
-          color: var(--nav-text);
-          width: 42px;
-          height: 40px;
-          clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+          width: 44px;
+          height: 44px;
+          background: rgba(28, 6, 14, 0.7);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          color: #fff9fa;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: all 0.25s ease;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          padding: 0;
+          box-sizing: border-box;
+          position: relative;
+          z-index: 100000005;
+        }
+
+        /* Sebelum scroll: tombol mobile transparan/halus di atas hero */
+        .navbar-wrapper:not(.scrolled) .mobile-toggle {
+          background: rgba(255, 255, 255, 0.75);
+          border-color: rgba(28, 5, 12, 0.2);
+          color: #1c050c;
+        }
+
+        /* Saat menu drawer terbuka: tombol selalu kontras terang dengan border bercahaya */
+        .navbar-wrapper.mobile-open .mobile-toggle,
+        .mobile-toggle.open {
+          background: rgba(255, 255, 255, 0.12) !important;
+          border-color: rgba(255, 224, 181, 0.5) !important;
+          color: #ffe0b5 !important;
+          box-shadow: 0 0 16px rgba(255, 224, 181, 0.3) !important;
         }
 
         .mobile-toggle:hover {
-          border-color: var(--nav-gold);
+          border-color: rgba(255, 255, 255, 0.55);
           color: var(--nav-gold);
         }
 
         .burger-lines {
           width: 18px;
-          height: 12px;
+          height: 14px;
+          position: relative;
           display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          align-items: flex-end;
+          align-items: center;
+          justify-content: center;
         }
 
         .burger-line {
+          position: absolute;
+          width: 18px;
           height: 2px;
           background: currentColor;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          border-radius: 2px;
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                      opacity 0.25s ease;
         }
 
-        .burger-line.l1 { width: 18px; }
-        .burger-line.l2 { width: 12px; color: var(--nav-gold); }
-        .burger-line.l3 { width: 15px; }
-
-        .mobile-toggle.open .l1 {
-          transform: translateY(5px) rotate(45deg);
-          width: 18px;
+        .burger-line.l1 {
+          transform: translateY(-4px);
         }
-        .mobile-toggle.open .l2 {
+
+        .burger-line.l2 {
+          transform: translateY(4px);
+        }
+
+        /* Morphing baris hamburger menjadi X di tempat yang sama */
+        .mobile-toggle.open .burger-line.l1 {
+          transform: translateY(0) rotate(45deg);
+        }
+
+        .mobile-toggle.open .burger-line.l2 {
+          transform: translateY(0) rotate(-45deg);
+        }
+
+        /* 5. Luxury Frosted Velvet Mobile Drawer (Bukan Hitam, Penuh Warna & Animasi Hidup) */
+        .mobile-overlay-drawer {
+          position: fixed;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          height: 100dvh;
+          z-index: 99999990;
+          /* Warna latar mewah: gradient wine/berry kaya yang terlihat jelas, bukan hitam pekat */
+          background: linear-gradient(150deg, rgba(46, 10, 24, 0.96) 0%, rgba(26, 5, 14, 0.98) 55%, rgba(62, 14, 34, 0.95) 100%);
+          backdrop-filter: blur(32px);
+          -webkit-backdrop-filter: blur(32px);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 6.5rem 1.75rem 2.25rem 1.75rem;
+          box-sizing: border-box;
           opacity: 0;
-        }
-        .mobile-toggle.open .l3 {
-          transform: translateY(-5px) rotate(-45deg);
-          width: 18px;
+          visibility: hidden;
+          pointer-events: none;
+          transform: scale(0.97);
+          transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                      visibility 0.35s;
         }
 
-        /* Dropdown Mobile Berkonsep HUD Panel */
-        .mobile-dropdown {
-          display: none;
+        .mobile-overlay-drawer.active {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+          transform: scale(1);
+        }
+
+        /* Ambient Glowing Orbs yang Bergerak Hidup di Belakang Menu */
+        .mobile-ambient-orb {
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(65px);
+          z-index: 0;
+        }
+
+        .mobile-ambient-orb.orb-1 {
+          width: 280px;
+          height: 280px;
+          top: 12%;
+          right: -40px;
+          background: radial-gradient(circle, rgba(235, 78, 120, 0.38) 0%, transparent 70%);
+          animation: ambientDrift1 6s infinite ease-in-out alternate;
+        }
+
+        .mobile-ambient-orb.orb-2 {
+          width: 320px;
+          height: 320px;
+          bottom: 10%;
+          left: -60px;
+          background: radial-gradient(circle, rgba(255, 224, 181, 0.28) 0%, transparent 70%);
+          animation: ambientDrift2 7.5s infinite ease-in-out alternate;
+        }
+
+        @keyframes ambientDrift1 {
+          0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+          100% { transform: translate(-30px, 40px) scale(1.2); opacity: 0.85; }
+        }
+
+        @keyframes ambientDrift2 {
+          0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+          100% { transform: translate(35px, -35px) scale(1.25); opacity: 0.8; }
+        }
+
+        /* Body Drawer */
+        .mobile-drawer-body {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 1.5rem 0.5rem;
+          flex: 1;
+          box-sizing: border-box;
+        }
+
+        .mobile-nav-eyebrow {
+          position: relative;
+          z-index: 2;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6rem;
+          font-family: var(--font-sans);
+          font-size: 0.74rem;
+          font-weight: 600;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: rgba(255, 235, 240, 0.6);
+          margin-bottom: 2rem;
+        }
+
+        .mobile-nav-eyebrow-beacon {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--nav-gold);
+          box-shadow: 0 0 10px var(--nav-gold);
+          animation: radarPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes radarPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.5); opacity: 0.6; }
+        }
+
+        .mobile-nav-links {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          gap: clamp(0.85rem, 2.8vh, 1.6rem);
+        }
+
+        /* Link Navigasi Font Sans Website yang Terlihat Sangat Jelas & Penuh Animasi */
+        .mobile-nav-link {
+          font-family: var(--font-sans);
+          font-size: clamp(2.3rem, 8vw, 3.2rem);
+          font-weight: 700;
+          line-height: 1.15;
+          letter-spacing: -0.02em;
+          color: #ffffff;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.75rem;
+          transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+          width: fit-content;
+          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+        }
+
+        /* Animasi Spring Bertingkat yang Hidup */
+        .mobile-overlay-drawer.active .mobile-nav-link {
+          animation: mobileItemSpring 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .mobile-overlay-drawer.active .mobile-nav-link:nth-child(1) { animation-delay: 0.08s; }
+        .mobile-overlay-drawer.active .mobile-nav-link:nth-child(2) { animation-delay: 0.15s; }
+        .mobile-overlay-drawer.active .mobile-nav-link:nth-child(3) { animation-delay: 0.22s; }
+        .mobile-overlay-drawer.active .mobile-nav-link:nth-child(4) { animation-delay: 0.29s; }
+        .mobile-overlay-drawer.active .mobile-nav-link:nth-child(5) { animation-delay: 0.36s; }
+
+        @keyframes mobileItemSpring {
+          0% {
+            opacity: 0;
+            transform: translateX(-30px) scale(0.9);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+          }
+        }
+
+        .mobile-nav-arrow {
+          font-size: 1.5rem;
+          color: var(--nav-gold);
+          opacity: 0;
+          transform: translateX(-14px);
+          transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .mobile-nav-link:hover .mobile-nav-arrow,
+        .mobile-nav-link.active .mobile-nav-arrow {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .mobile-nav-link:hover,
+        .mobile-nav-link.active {
+          color: #ffe0b5;
+          transform: translateX(8px);
+          text-shadow: 0 0 24px rgba(255, 224, 181, 0.55);
+        }
+
+        .mobile-active-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #34d399;
+          box-shadow: 0 0 12px #34d399;
+          margin-left: 0.4rem;
+          animation: pulseDot 2s infinite ease-in-out;
+        }
+
+        /* Footer: Garis Divider Bersih dengan Efek Cahaya Bergerak */
+        .mobile-drawer-footer {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          padding: 1.25rem 0.5rem 0;
+          box-sizing: border-box;
+        }
+
+        .mobile-footer-divider {
+          width: 100%;
+          height: 1.5px;
+          background: linear-gradient(90deg, transparent 0%, rgba(255, 224, 181, 0.6) 50%, transparent 100%);
+          background-size: 200% 100%;
+          animation: dividerSweep 4s infinite ease-in-out;
+        }
+
+        @keyframes dividerSweep {
+          0% { background-position: -100% 0; }
+          100% { background-position: 200% 0; }
         }
 
         @media (max-width: 920px) {
-          .navbar-wrapper {
-            padding: 1rem 1.25rem;
+          /* Sebelum di-scroll: Transparan tanpa warna latar */
+          .navbar-wrapper:not(.scrolled) {
+            padding: 0.75rem 1.25rem;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
           }
 
+          /* Setelah di-scroll: baru muncul glass capsule bar */
           .navbar-wrapper.scrolled {
-            top: 0.4rem;
-            padding: 0.5rem 0.85rem;
+            top: 0.25rem;
+            padding: 0.6rem 1rem;
+            background: var(--nav-bg-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--nav-border);
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(12, 2, 6, 0.35);
+          }
+
+          /* Saat menu drawer mobile terbuka: navbar menyatu halus dengan latar drawer */
+          .navbar-wrapper.mobile-open {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+          }
+
+          .navbar-wrapper.mobile-open .nav-logo-title {
+            color: #fff9fa !important;
+          }
+
+          .navbar-wrapper.mobile-open .brand-telemetry-sub {
+            color: rgba(255, 232, 236, 0.75) !important;
           }
 
           .nav-hud-deck,
@@ -585,45 +880,6 @@ export default function Navbar({ onNavigateComments }) {
 
           .mobile-toggle {
             display: inline-flex;
-          }
-
-          .mobile-dropdown {
-            display: ${mobileMenuOpen ? "flex" : "none"};
-            flex-direction: column;
-            gap: 0.45rem;
-            position: absolute;
-            top: calc(100% + 0.65rem);
-            left: 0;
-            right: 0;
-            background: rgba(28, 6, 14, 0.94);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--nav-border-strong);
-            padding: 1.15rem;
-            clip-path: polygon(
-              0 0,
-              100% 0,
-              100% calc(100% - 14px),
-              calc(100% - 14px) 100%,
-              0 100%
-            );
-            box-shadow: 0 24px 48px rgba(12, 2, 6, 0.55);
-          }
-
-          .mobile-dropdown .nav-link {
-            width: 100%;
-            box-sizing: border-box;
-            justify-content: space-between;
-            padding: 0.8rem 1rem;
-            border: 1px solid rgba(255, 232, 236, 0.08);
-          }
-
-          .mobile-dropdown .nav-action-btn {
-            width: 100%;
-            justify-content: center;
-            margin-top: 0.4rem;
-            background: linear-gradient(135deg, #fff9fa 0%, var(--nav-gold) 100%);
-            color: var(--nav-dark);
           }
         }
       `}</style>
@@ -689,43 +945,60 @@ export default function Navbar({ onNavigateComments }) {
           </svg>
         </button>
 
-        {/* 4. Tombol Menu Mobile */}
+        {/* 4. Tombol Menu Mobile (Satu Tombol: Buka & Tutup di Tempat yang Sama Persis) */}
         <button
           type="button"
           className={`mobile-toggle ${mobileMenuOpen ? "open" : ""}`}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle navigation"
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
         >
           <div className="burger-lines">
             <span className="burger-line l1" />
             <span className="burger-line l2" />
-            <span className="burger-line l3" />
           </div>
         </button>
-
-        {/* 5. Menu Dropdown Mobile */}
-        <div className="mobile-dropdown">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={`nav-link ${activeTab === item.label ? "active" : ""}`}
-              onClick={(e) => handleNavClick(e, item.href, item.label)}
-            >
-              <span>{item.label}</span>
-              <span className="nav-index">/{item.index}</span>
-            </a>
-          ))}
-          <button
-            type="button"
-            onClick={handleConnectClick}
-            className="nav-action-btn"
-          >
-            <span className="status-dot" />
-            <span>Let&apos;s Connect</span>
-          </button>
-        </div>
       </div>
+
+      {/* 5. Minimalist Fullscreen Overlay Mobile Drawer (Warna Hidup & Animasi Interaktif) */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={`mobile-overlay-drawer ${mobileMenuOpen ? "active" : ""}`}
+            aria-hidden={!mobileMenuOpen}
+          >
+            {/* Ambient Moving Glow Orbs yang Memberi Efek Hidup & Terlihat Jelas */}
+            <div className="mobile-ambient-orb orb-1" />
+            <div className="mobile-ambient-orb orb-2" />
+
+            {/* Content: Eyebrow NAVIGATION + Link Vertikal dengan Animasi Spring & Arrow */}
+            <div className="mobile-drawer-body">
+              <div className="mobile-nav-eyebrow">
+                <span className="mobile-nav-eyebrow-beacon" />
+                <span>NAVIGATION</span>
+              </div>
+              <nav className="mobile-nav-links">
+                {mobileNavItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className={`mobile-nav-link ${activeTab === item.label ? "active" : ""}`}
+                    onClick={(e) => handleNavClick(e, item.href, item.label)}
+                  >
+                    <span className="mobile-nav-arrow">→</span>
+                    <span className="mobile-nav-text">{item.label}</span>
+                    {activeTab === item.label && <span className="mobile-active-dot" />}
+                  </a>
+                ))}
+              </nav>
+            </div>
+
+            {/* Footer: Garis Divider dengan Efek Cahaya Bergerak */}
+            <div className="mobile-drawer-footer">
+              <div className="mobile-footer-divider" />
+            </div>
+          </div>,
+          document.body
+        )}
     </header>
   );
 }
